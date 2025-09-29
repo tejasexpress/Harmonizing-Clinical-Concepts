@@ -1,99 +1,75 @@
-# Knowledge Graph Navigator for Clinical Data Harmonization
+https://github.com/tejasexpress/Harmonizing-Clinical-Concepts
+
+Repository Link
+
+# Clinical Data Harmonization: Multiple Approaches
 
 ## Overview
 
-The **Knowledge Graph Navigator** is a clinical concept harmonization system that maps input clinical descriptions to standardized codes from RxNorm and SNOMED CT. It combines text matching (BM25) with semantic understanding through knowledge graphs to achieve high-accuracy mappings.
+This repository contains **three different approaches** for harmonizing clinical data by mapping free-text clinical descriptions to standardized codes from RxNorm and SNOMED CT. The approaches are presented in order of performance:
 
-## Solution Architecture
+1. **🏆 Knowledge Graph Navigator** (This Implementation) - **Best Performing**
+2. **🔍 Classical Search Engine** (Alternative Approach) 
+3. **🤖 Transformer-Based Approach** (Alternative Approach)
 
-### Core Approach
-The system uses a **hybrid approach** combining:
-1. **Initial Text Matching**: BM25 (Okapi) for fast candidate generation
-2. **Semantic Enhancement**: Knowledge graphs for context-aware scoring
-3. **Entity-Type Awareness**: Using clinical entity types (Medicine, Procedure, Diagnosis, Lab) for targeted matching
-4. **Data-Driven Intelligence**: Automatically discovers relationships from the dataset rather than using hardcoded rules
+---
 
-### Key Components
+## 🏆 Approach #1: Knowledge Graph Navigator (Best Performing)
 
-#### 1. Clinical Data Preprocessor
-- **Text Cleaning**: Handles medical abbreviations, preserves numbers/units/percentages
-- **Abbreviation Expansion**: Converts medical abbreviations (e.g., "mri" → "magnetic resonance imaging")
-- **Number Preservation**: Maintains dosages and measurements (e.g., "0.1 mg/ml", "500 mg")
-- **Tokenization**: Creates searchable tokens while removing stop words
+### What This Approach Does
 
-#### 2. BM25 Candidate Generation
-- **Fast Initial Matching**: Uses BM25Okapi algorithm for text similarity
-- **Entity-Type Integration**: Incorporates entity type into search queries
-- **Configurable Parameters**: Top-k candidates, scoring thresholds
-- **Cross-System Search**: Searches both RxNorm and SNOMED simultaneously
+The **Knowledge Graph Navigator** is our **highest-performing** clinical concept harmonization system. It uses a sophisticated hybrid approach that combines:
 
-#### 3. Knowledge Graph Construction
-- **Multi-Level Expansion**: Builds graphs around candidate concepts using CUI relationships
-- **Semantic Relationships**: Connects concepts via STY (Semantic Type) and TTY (Term Type)
-- **Cross-System Mappings**: Links RxNorm and SNOMED concepts with shared CUIs
-- **Data-Driven Discovery**: Automatically learns TTY and STY relationships from the dataset
+- **Fast text matching** (BM25) for initial candidate generation
+- **Semantic knowledge graphs** for context-aware understanding  
+- **Entity-type awareness** for targeted matching
+- **Data-driven relationship discovery** instead of hardcoded rules
 
-#### 4. Graph-Based Scoring
-- **Multi-Component Scoring**:
-  - **TTY Weight (35%)**: Term type importance based on entity type
-  - **Token Overlap (25%)**: Direct text similarity
-  - **STY Alignment (15%)**: Semantic type relevance to entity type
-  - **System Weight (15%)**: Preference for appropriate terminology system
-  - **Centrality (10%)**: Graph connectivity importance
-- **Configurable Weights**: All scoring parameters externalized to YAML configuration
+### Repository Structure
 
-#### 5. Final Score Combination
-- **BM25 Score (60%)**: Text matching component
-- **Graph Score (40%)**: Semantic understanding component
-- **Configurable Balance**: Weights adjustable via configuration
+```
+project_root/
+├── knowledge_graph_navigator.py    # Main implementation (this approach)
+├── scoring_config.yaml            # All scoring parameters (configurable)
+├── Test.xlsx                     # Input clinical descriptions
+├── Target Description Files/
+│   ├── rxnorm_all_data.parquet   # RxNorm terminology (379K concepts)
+│   ├── snomed_all_data.parquet   # SNOMED CT terminology (1M+ concepts)
+│   └── Column Reference Guide.md # Data schema documentation
+└── README.md                     # This documentation
+```
 
-## Dataset Structure
+### How It Works: Quick Walkthrough
 
-### Input Data
-- **Test.xlsx**: Clinical descriptions to be harmonized
-  - `Input Entity Description`: Free-text clinical descriptions
-  - `Entity Type`: Medicine, Procedure, Diagnosis, or Lab
+1. **📝 Preprocessing**: Cleans text, expands medical abbreviations ("mri" → "magnetic resonance imaging"), preserves dosages ("500 mg")
 
-### Target Vocabularies
-- **rxnorm_all_data.parquet**: RxNorm terminology (379,991 concepts)
-- **snomed_all_data.parquet**: SNOMED CT terminology (1,035,233 concepts)
+2. **🔍 Initial Matching**: Uses BM25 to quickly find ~50 candidate concepts from 1.4M+ total concepts, incorporating entity type into the search
 
-### Data Schema
-Each concept contains:
-- **CUI**: Concept Unique Identifier (links synonymous terms)
-- **System**: Source vocabulary (RXNORM, SNOMEDCT_US)
-- **TTY**: Term Type (role within vocabulary)
-- **CODE**: Original vocabulary code
-- **STR**: Human-readable term
-- **STY**: Semantic Type (broad category)
+3. **🕸️ Graph Construction**: For each candidate, builds a small knowledge graph by:
+   - Finding related concepts via CUI (Concept Unique Identifier) relationships
+   - Connecting concepts through STY (Semantic Type) and TTY (Term Type) relationships
+   - Learning these relationships from the data automatically
 
-## Key Features
+4. **⚖️ Multi-Component Scoring**: Scores each concept using:
+   - **TTY Weight (35%)**: How appropriate is this term type for the entity?
+   - **Token Overlap (25%)**: Direct text similarity
+   - **STY Alignment (15%)**: Does the semantic type match the entity type?
+   - **System Weight (15%)**: Is this the right terminology system (RxNorm vs SNOMED)?
+   - **Centrality (10%)**: How well-connected is this concept?
 
-### 1. Entity-Type Aware Matching
-- **Medicine**: Prioritizes RxNorm, favors SCD/SBD term types
-- **Procedure**: Prioritizes SNOMED, favors PT (Preferred Term)
-- **Diagnosis**: Prioritizes SNOMED, favors PT term types
-- **Lab**: Prioritizes SNOMED, includes LOINC terms
+5. **🎯 Final Selection**: Combines BM25 score (60%) + Graph score (40%) to select the best match
 
-### 2. Intelligent Preprocessing
-- **Medical Abbreviation Expansion**: 21+ common abbreviations
-- **Number/Unit Preservation**: Maintains "0.1 mg/ml", "500 mg", "0.01%"
-- **Parentheses Handling**: Extracts content while removing brackets
+### Why This Approach Works Best
 
-### 3. Data-Driven Relationship Discovery
-- **TTY Relationships**: Learns co-occurrence patterns within CUIs
-- **STY-Entity Alignment**: Discovers which semantic types best match entity types
-- **Cross-System Mappings**: Identifies high-quality RxNorm↔SNOMED links
+- ✅ **Entity-Type Aware**: Knows that "Medicine" should prefer RxNorm and SCD term types
+- ✅ **Preserves Clinical Context**: Handles "0.1 mg/ml" and medical abbreviations correctly  
+- ✅ **Data-Driven**: Learns relationships from the actual dataset, not hardcoded rules
+- ✅ **Configurable**: All parameters in `scoring_config.yaml` for easy tuning
+- ✅ **Cross-System**: Leverages both RxNorm and SNOMED strengths
 
-### 4. Configurable Scoring System
-All heuristic parameters externalized to `scoring_config.yaml`:
-- Final score combination weights
-- Graph component weights
-- TTY weights by entity type
-- System preferences
-- Edge weights in knowledge graphs
+---
 
-## Setup Instructions
+## 🚀 Setup and Execution (Knowledge Graph Navigator)
 
 ### Prerequisites
 - Python 3.8+
@@ -103,99 +79,56 @@ All heuristic parameters externalized to `scoring_config.yaml`:
   - `Target Description Files/rxnorm_all_data.parquet`
   - `Target Description Files/snomed_all_data.parquet`
 
-### Step 1: Environment Setup
+### Quick Setup
 ```bash
-# Create virtual environment
+# 1. Create virtual environment
 python -m venv venv
 
-# Activate virtual environment
-# On Windows:
-venv\Scripts\activate
-# On macOS/Linux:
-source venv/bin/activate
-```
+# 2. Activate virtual environment
+# On Windows: venv\Scripts\activate
+# On macOS/Linux: source venv/bin/activate
 
-### Step 2: Install Dependencies
-```bash
+# 3. Install dependencies
 pip install pandas networkx rank_bm25 openpyxl pyarrow pyyaml scikit-learn
 ```
 
-### Step 3: Verify Data Files
-Ensure your directory structure looks like:
-```
-project_root/
-├── knowledge_graph_navigator.py
-├── scoring_config.yaml
-├── Test.xlsx
-└── Target Description Files/
-    ├── rxnorm_all_data.parquet
-    ├── snomed_all_data.parquet
-    └── Column Reference Guide.md
-```
+### Execution Options
 
-### Step 4: Configuration
-The system uses `scoring_config.yaml` for all parameters. Default configuration is provided, but you can modify:
-- Score combination weights
-- TTY importance by entity type
-- System preferences
-- Graph building parameters
-
-## Usage
-
-### Quick Start
+#### Option 1: Quick Test (Single Query)
 ```python
 from knowledge_graph_navigator import KnowledgeGraphNavigator
 
-# Initialize with default configuration
+# Initialize and setup
 navigator = KnowledgeGraphNavigator('scoring_config.yaml')
-
-# Load data
 navigator.load_data()
-
-# Preprocess clinical data
 navigator.preprocess_clinical_data()
-
-# Initialize BM25 model
 navigator.initialize_bm25()
 
 # Test single description
-result = navigator.get_best_match_for_description(
-    "Paracetamol 500 mg", 
-    "Medicine"
-)
-
+result = navigator.get_best_match_for_description("Paracetamol 500 mg", "Medicine")
 print(f"Best match: {result['output_target_description']}")
-print(f"System: {result['output_coding_system']}")
-print(f"Code: {result['output_target_code']}")
 ```
 
-### Running the Complete Pipeline
-
-#### Option 1: Process All 400 Test Cases (Production)
+#### Option 2: Process All 400 Test Cases (Production)
 ```python
 from knowledge_graph_navigator import main
-
-# Process all test cases (30-60 minutes)
-main()
+main()  # Takes 30-60 minutes
 ```
 
-#### Option 2: Demo Mode (First 20 Cases)
+#### Option 3: Demo Mode (First 20 Cases)
 ```python
 from knowledge_graph_navigator import main
-
-# Process first 20 cases for demonstration
-main(max_test_cases=20)
+main(max_test_cases=20)  # Much faster for demonstration
 ```
 
-#### Option 3: Command Line Execution
+#### Option 4: Command Line
 ```bash
 python knowledge_graph_navigator.py
 ```
 
 ### Expected Output
-The system generates:
-- **Test_with_predictions.xlsx**: Results in required format
-- **Console output**: Progress updates, sample results, statistics
+- **Test_with_predictions.xlsx**: Final results in required format
+- **Console progress**: Shows processing status and sample results
 - **Performance metrics**: BM25 scores, combined scores, success rates
 
 ### Sample Results
@@ -206,41 +139,13 @@ Description: Paracetamol 500 mg oral tablet
 Score: 17.08 (BM25: 14.77, Graph: 2.31)
 ```
 
-## Configuration
+---
 
-### scoring_config.yaml Structure
-```yaml
-# Final score combination
-final_score_weights:
-  bm25_weight: 0.6      # Text matching importance
-  graph_weight: 0.4     # Semantic graph importance
+## 📊 Technical Details (Knowledge Graph Navigator)
 
-# Graph scoring components
-graph_scoring_weights:
-  tty_weight: 0.35      # Term type importance
-  system_weight: 0.15   # System preference
-  token_overlap: 0.25   # Text similarity
-  centrality: 0.10      # Graph connectivity
-  sty_alignment: 0.15   # Semantic alignment
+### Algorithm Overview
 
-# TTY weights by entity type
-tty_weights:
-  Medicine:
-    SCD: 5.0    # Semantic Clinical Drug (highest)
-    SBD: 4.5    # Semantic Branded Drug
-    IN: 3.5     # Ingredient
-    # ... more TTY weights
-```
-
-### Customizing the Algorithm
-1. **Modify Weights**: Edit `scoring_config.yaml`
-2. **Add Abbreviations**: Update `medical_abbreviations` section
-3. **Tune BM25**: Adjust `bm25_parameters`
-4. **Graph Building**: Modify `graph_building` parameters
-
-## Algorithm Details
-
-### Scoring Formula
+**Scoring Formula:**
 ```
 Final Score = (BM25_Score × 0.6) + (Graph_Score × 0.4)
 
@@ -251,51 +156,62 @@ Graph_Score = (TTY_Weight × 0.35) +
               (Centrality × 0.10)
 ```
 
-### Knowledge Graph Construction
-1. **Start with candidate concept**
-2. **Expand by CUI relationships** (radius = 2 levels)
-3. **Add nodes**: All terms sharing CUIs
-4. **Create edges**: Based on CUI, STY, TTY, and system relationships
-5. **Score nodes**: Multi-component relevance scoring
-
-### Data-Driven Intelligence
-- **TTY Relationships**: Discovered by analyzing CUI co-occurrence (min 10 occurrences)
-- **STY-Entity Mapping**: Top 15 STYs per entity type from frequency analysis
-- **Cross-System Quality**: Concepts appearing in both RxNorm and SNOMED
-
-## Performance & Troubleshooting
+### Key Features
+- **Entity-Type Specific Scoring**: Different weights for Medicine, Procedure, Diagnosis, Lab
+- **Data-Driven Discovery**: Automatically learns TTY relationships and STY alignments
+- **Configurable Parameters**: All scoring weights in `scoring_config.yaml`
+- **Cross-System Integration**: Seamlessly combines RxNorm and SNOMED CT
 
 ### Performance Characteristics
-- **Accuracy**: High precision through knowledge graph enhancement
 - **Speed**: ~400 queries in 30-60 minutes
 - **Memory**: Peak usage ~6-8 GB during processing
+- **Accuracy**: High precision through knowledge graph enhancement
 
-### Common Issues & Solutions
-1. **Memory Errors**: Increase system RAM or reduce dataset size
-2. **Missing Dependencies**: `pip install pyarrow pyyaml`
-3. **File Not Found**: Ensure all data files are in correct directories
-4. **No Matches**: Check entity_type parameter is being passed correctly
+---
 
-### Debug Mode
-```python
-import logging
-logging.getLogger().setLevel(logging.INFO)
-```
+## 🔍 Approach #2: Classical Search Engine
 
-# Classical Search Engine for Clinical Data Harmonization
+### What This Approach Does
 
-## Our Approach: A Hybrid Search and Re-ranking System
-To address this challenge, we have developed a hybrid system that combines the strengths of traditional lexical search with modern semantic search and re-ranking techniques. Our system uses the following components:
+The **Classical Search Engine** approach represents a hybrid search and re-ranking system that combines traditional lexical search with modern semantic search techniques. This approach was developed as an alternative to pure keyword matching but was ultimately outperformed by the Knowledge Graph Navigator.
 
-1. Lexical Search: We use the BM25Okapi algorithm, a state-of-the-art term-based search method, to quickly identify candidate concepts based on keyword matching. This is a fast and efficient way to narrow down the search space.
+### How It Works
 
-2. Semantic Search: We use the SapBERT sentence transformer model, which has been pre-trained on a massive biomedical text corpus, to generate dense vector representations (embeddings) of the clinical descriptions. This allows us to find semantically similar concepts, even if they do not share any keywords.
+1. **Lexical Search**: Uses BM25Okapi algorithm for fast keyword-based candidate identification from the large terminology space
 
-3. FAISS Indexing: To enable efficient similarity search over the millions of vectors in our target terminologies, we use FAISS (Facebook AI Similarity Search), a library for efficient similarity search and clustering of dense vectors.
+2. **Semantic Search**: Employs SapBERT sentence transformer model (pre-trained on biomedical text) to generate dense vector representations of clinical descriptions, enabling semantic similarity matching beyond keyword overlap
 
-4. Cross-Encoder Re-ranking: After retrieving a set of candidate concepts from both the lexical and semantic search stages, we use a cross-encoder model to re-rank the candidates. The cross-encoder takes a pair of descriptions (the input description and a candidate description) and outputs a similarity score. This allows for a more fine-grained comparison of the descriptions and helps to identify the best match.
+3. **FAISS Indexing**: Utilizes Facebook AI Similarity Search (FAISS) library for efficient similarity search and clustering over millions of concept vectors
 
-## The Limitations of a Classic Search Engine
-A traditional, or "classic," search engine primarily relies on an inverted index and keyword matching. This approach, while effective for general-purpose document retrieval, is insufficient for the nuances of clinical data. For instance, a classic search for "arm pain" would likely return any document containing the words "arm" and "pain," but it would fail to understand the clinical context. It would not recognize that "brachialgia" is a synonym, nor would it be able to differentiate between "fractured arm pain" and "sore arm muscle," which are clinically distinct concepts.
+4. **Cross-Encoder Re-ranking**: After retrieving candidates from both lexical and semantic stages, applies a cross-encoder model to re-rank candidates by computing fine-grained similarity scores between input descriptions and candidate descriptions
 
-This lack of semantic understanding is a significant drawback. Clinical terminologies are complex and hierarchical, with subtle but critical differences between terms. A classic search engine cannot grasp these relationships, leading to inaccurate or irrelevant results. It operates on a surface level of keyword matching, which is inadequate for the precision required in harmonizing clinical concepts, where a misunderstanding can have serious implications for patient care and medical research.
+### Why Classical Search Has Limitations
+
+Traditional search engines rely primarily on inverted indexes and keyword matching, which is insufficient for clinical data nuances:
+
+- **Surface-Level Matching**: Cannot understand that "brachialgia" is a synonym for "arm pain"
+- **Lack of Clinical Context**: Fails to differentiate between clinically distinct concepts like "fractured arm pain" vs "sore arm muscle"
+- **No Semantic Understanding**: Operates on keyword matching without grasping hierarchical relationships in clinical terminologies
+- **Precision Requirements**: Clinical concept harmonization requires understanding subtle but critical differences between terms, where misunderstandings can impact patient care
+
+### Performance vs Knowledge Graph Navigator
+
+While the Classical Search Engine approach incorporates semantic understanding through transformers and sophisticated re-ranking, it lacks the **entity-type awareness** and **data-driven relationship discovery** that makes the Knowledge Graph Navigator superior for clinical concept harmonization tasks.
+
+---
+
+## 🤖 Approach #3: Transformer-Based Approach (Future Implementation)
+
+This approach would leverage state-of-the-art transformer models specifically fine-tuned for clinical concept harmonization. It represents a potential future direction for even more sophisticated semantic understanding of clinical text.
+
+---
+
+## 🎯 Conclusion
+
+The **Knowledge Graph Navigator** represents the current state-of-the-art approach in this repository, combining the speed of traditional search with the semantic understanding of modern NLP, enhanced by domain-specific knowledge graph construction and entity-type awareness. This hybrid approach achieves superior performance by understanding both the textual and conceptual relationships inherent in clinical terminologies.
+
+For production use, we recommend the Knowledge Graph Navigator approach due to its:
+- Superior accuracy through multi-component scoring
+- Configurable parameters for different use cases
+- Data-driven intelligence that adapts to the actual terminology relationships
+- Entity-type awareness that improves precision for different clinical domains
