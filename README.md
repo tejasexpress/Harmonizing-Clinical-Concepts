@@ -202,7 +202,40 @@ While the Classical Search Engine approach incorporates semantic understanding t
 
 ## 🤖 Approach #3: Transformer-Based Approach (Future Implementation)
 
-This approach would leverage state-of-the-art transformer models specifically fine-tuned for clinical concept harmonization. It represents a potential future direction for even more sophisticated semantic understanding of clinical text.
+### What This Approach Does
+
+The **Transformer-Based Approach** approach represents a multi-stage matching system that combines semantic embeddings, lexical fuzzy matching, and clinical domain knowledge. This approach builds upon basic transformer-based search by adding intelligent preprocessing, multi-factor scoring, and entity-specific matching strategies to handle the messy, inconsistent nature of real-world clinical data.
+
+### How It Works
+
+1. **Entity-Aware Preprocessing**: Applies domain-specific text normalization based on entity type (medication/diagnosis/procedure/lab), including medical abbreviation expansion (xr → x-ray, hb → haemoglobin), drug synonym mapping (paracetamol → acetaminophen), anatomical location standardization, and dosage unit normalization
+
+2. **Semantic Search**: Uses SentenceTransformer (all-MiniLM-L6-v2) to generate dense vector embeddings for semantic similarity matching beyond keyword overlap
+
+3. **FAISS Indexing**: Enables efficient retrieval of top-k candidates from millions of RxNorm and SNOMED CT concepts using inner product similarity
+   
+4. **Multi-Factor Scoring**: Combines semantic similarity (35%), lexical similarity (40%), TTY priority (15%), and length similarity (10%) for optimal candidate ranking
+
+5. **Intelligent Fallback**: Employs entity-specific fallback strategies when confidence falls below 0.5, including ingredient-based matching for medications
+
+### Why Classical Search Has Limitations
+
+1. **Handles Clinical Text Inconsistencies**: Expands abbreviations, standardizes drug names, normalizes dosages, and parses natural language into standardized anatomical terms
+
+2. **Multi-Factor Scoring Prevents Single-Method Failures**: Combines semantic matching, lexical similarity, and TTY priority to avoid clinically incorrect mappings that occur when relying on any single approach
+
+3. **Entity-Specific Intelligence with Fallback**: Different preprocessing strategies for medications, diagnoses, procedures, and labs, plus intelligent fallback for edge cases like non-existent dosages
+   
+4. **Fast and Clinically Appropriate**: Processes queries in ~0.1-0.2 seconds while prioritizing preferred term types (SCD for medications, PT for SNOMED) for standardized, high-quality mappings
+
+### Why Transformer-Based Approach Has Limitations
+
+While this approach significantly improves upon basic semantic search, it still has constraints:
+
+- **Rule-Based Preprocessing**: Abbreviation and synonym dictionaries require manual curation and may miss uncommon variations
+- **No Relationship Modeling**: Unlike knowledge graph approaches, it doesn't leverage hierarchical relationships or cross-terminology mappings in UMLS
+- **Static Embeddings**: Pre-trained embeddings may not capture domain-specific nuances of specialized clinical vocabularies
+- **Threshold Sensitivity**: Confidence thresholds for fallback strategies require tuning and may not generalize across all entity types
 
 ---
 
