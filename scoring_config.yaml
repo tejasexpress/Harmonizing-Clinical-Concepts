@@ -1,0 +1,150 @@
+# Knowledge Graph Navigator Scoring Configuration
+# This file contains all heuristic scoring parameters used in the algorithm
+
+# Final score combination weights
+final_score_weights:
+  bm25_weight: 0.6      # Text matching importance
+  graph_weight: 0.4     # Semantic graph importance
+
+# Graph node scoring component weights
+graph_scoring_weights:
+  tty_weight: 0.35      # Term Type importance
+  system_weight: 0.15   # System preference importance  
+  token_overlap: 0.25   # Text similarity importance
+  centrality: 0.10      # Graph connectivity importance
+  sty_alignment: 0.15   # Semantic Type alignment importance
+
+# TTY (Term Type) weights by entity type
+tty_weights:
+  Medicine:
+    SCD: 5.0    # Semantic Clinical Drug
+    SBD: 4.5    # Semantic Branded Drug
+    GPCK: 4.2   # Generic Pack
+    BPCK: 4.0   # Branded Pack
+    PIN: 3.8    # Precise Ingredient
+    IN: 3.5     # Ingredient
+    MIN: 3.2    # Multiple Ingredients
+    PT: 3.0     # Preferred Term
+    BN: 2.8     # Brand Name
+    PSN: 2.5    # Prescribable Name
+    SY: 2.0     # Synonym
+    TMSY: 1.8   # Tall Man Synonym
+    default: 1.0
+  
+  Procedure:
+    PT: 5.0     # Preferred Term
+    FN: 4.0     # Full Form
+    SY: 3.0     # Synonym
+    AB: 2.5     # Abbreviation
+    AD: 2.0     # Adjective
+    default: 1.0
+  
+  Diagnosis:
+    PT: 5.0     # Preferred Term
+    FN: 4.0     # Full Form
+    SY: 3.0     # Synonym
+    AB: 2.5     # Abbreviation
+    AD: 2.0     # Adjective
+    default: 1.0
+  
+  Lab:
+    PT: 5.0     # Preferred Term
+    FN: 4.0     # Full Form
+    SY: 3.0     # Synonym
+    AB: 2.5     # Abbreviation
+    LN: 2.8     # LOINC Name
+    default: 1.0
+
+# System preference weights by entity type
+system_weights:
+  Medicine:
+    RXNORM: 1.2         # Prefer RxNorm for medications
+    SNOMEDCT_US: 0.8
+    default: 0.5
+  
+  Procedure:
+    SNOMEDCT_US: 1.2    # Prefer SNOMED for procedures
+    RXNORM: 0.8
+    default: 0.5
+  
+  Diagnosis:
+    SNOMEDCT_US: 1.2    # Prefer SNOMED for diagnoses
+    RXNORM: 0.8
+    default: 0.5
+  
+  Lab:
+    SNOMEDCT_US: 1.2    # Prefer SNOMED for lab tests
+    RXNORM: 0.8
+    default: 0.5
+
+# STY alignment scoring parameters
+sty_alignment:
+  max_score: 1.0        # Maximum STY alignment score
+  min_score: 0.1        # Minimum STY alignment score
+  top_n_stys: 15        # Number of top STYs to consider for each entity type
+  score_decay: 0.9      # Score decay factor for lower-ranked STYs
+
+# Graph building parameters
+graph_building:
+  max_related_concepts: 100    # Maximum related concepts to find
+  expand_radius: 2             # Graph expansion radius (BFS levels)
+  min_tty_cooccurrence: 10     # Minimum co-occurrence for TTY relationships
+
+# BM25 parameters
+bm25_parameters:
+  top_k_candidates: 50         # Number of initial BM25 candidates
+  max_candidates_for_graph: 10 # Maximum candidates to build graphs for
+
+# Edge weights in knowledge graph
+edge_weights:
+  same_cui: 1.0               # Same Concept Unique Identifier
+  cross_system_cui_bonus: 0.2 # Bonus for cross-system CUI matches
+  same_sty: 0.6               # Same Semantic Type
+  tty_related: 0.4            # TTY relationship
+  same_system: 0.2            # Same source system
+
+# Token overlap calculation
+token_overlap:
+  use_jaccard: true           # Use Jaccard similarity for token overlap
+  min_overlap_threshold: 0.1  # Minimum overlap to consider
+
+# Data-driven discovery parameters
+discovery_parameters:
+  entity_sty_cache_size: 1000    # Cache size for entity-STY relationships
+  tty_relationship_cache_size: 500 # Cache size for TTY relationships
+  min_frequency_threshold: 5      # Minimum frequency for relationship discovery
+
+# Preprocessing parameters
+preprocessing:
+  remove_stop_words: true
+  expand_abbreviations: true
+  preserve_numbers: true
+  preserve_percentages: true
+  preserve_units: true
+
+# Medical abbreviations dictionary (subset - can be expanded)
+medical_abbreviations:
+  mri: "magnetic resonance imaging"
+  hcv: "hepatitis c virus"
+  hiv: "human immunodeficiency virus"
+  mi: "myocardial infarction"
+  dvt: "deep vein thrombosis"
+  pe: "pulmonary embolism"
+  cabg: "coronary artery bypass graft"
+  pci: "percutaneous coronary intervention"
+  po: "by mouth"
+  bid: "twice daily"
+  tid: "three times daily"
+  qid: "four times daily"
+  prn: "as needed"
+  mg: "milligram"
+  ml: "milliliter"
+  mcg: "microgram"
+  iu: "international unit"
+
+# Debug and logging parameters
+debug:
+  print_graph_stats: false
+  print_score_breakdown: false
+  print_preprocessing_changes: true
+  max_debug_candidates: 5
