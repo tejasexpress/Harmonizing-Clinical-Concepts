@@ -281,3 +281,21 @@ Graph_Score = (TTY_Weight × 0.35) +
 import logging
 logging.getLogger().setLevel(logging.INFO)
 ```
+
+# Classical Search Engine for Clinical Data Harmonization
+
+## Our Approach: A Hybrid Search and Re-ranking System
+To address this challenge, we have developed a hybrid system that combines the strengths of traditional lexical search with modern semantic search and re-ranking techniques. Our system uses the following components:
+
+1. Lexical Search: We use the BM25Okapi algorithm, a state-of-the-art term-based search method, to quickly identify candidate concepts based on keyword matching. This is a fast and efficient way to narrow down the search space.
+
+2. Semantic Search: We use the SapBERT sentence transformer model, which has been pre-trained on a massive biomedical text corpus, to generate dense vector representations (embeddings) of the clinical descriptions. This allows us to find semantically similar concepts, even if they do not share any keywords.
+
+3. FAISS Indexing: To enable efficient similarity search over the millions of vectors in our target terminologies, we use FAISS (Facebook AI Similarity Search), a library for efficient similarity search and clustering of dense vectors.
+
+4. Cross-Encoder Re-ranking: After retrieving a set of candidate concepts from both the lexical and semantic search stages, we use a cross-encoder model to re-rank the candidates. The cross-encoder takes a pair of descriptions (the input description and a candidate description) and outputs a similarity score. This allows for a more fine-grained comparison of the descriptions and helps to identify the best match.
+
+## The Limitations of a Classic Search Engine
+A traditional, or "classic," search engine primarily relies on an inverted index and keyword matching. This approach, while effective for general-purpose document retrieval, is insufficient for the nuances of clinical data. For instance, a classic search for "arm pain" would likely return any document containing the words "arm" and "pain," but it would fail to understand the clinical context. It would not recognize that "brachialgia" is a synonym, nor would it be able to differentiate between "fractured arm pain" and "sore arm muscle," which are clinically distinct concepts.
+
+This lack of semantic understanding is a significant drawback. Clinical terminologies are complex and hierarchical, with subtle but critical differences between terms. A classic search engine cannot grasp these relationships, leading to inaccurate or irrelevant results. It operates on a surface level of keyword matching, which is inadequate for the precision required in harmonizing clinical concepts, where a misunderstanding can have serious implications for patient care and medical research.
