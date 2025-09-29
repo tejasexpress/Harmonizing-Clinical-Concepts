@@ -218,7 +218,7 @@ The **Transformer-Based Approach** approach represents a multi-stage matching sy
 
 5. **Intelligent Fallback**: Employs entity-specific fallback strategies when confidence falls below 0.5, including ingredient-based matching for medications
 
-### Why Classical Search Has Limitations
+### Key Advantages and Performance
 
 1. **Handles Clinical Text Inconsistencies**: Expands abbreviations, standardizes drug names, normalizes dosages, and parses natural language into standardized anatomical terms
 
